@@ -1,4 +1,4 @@
-# The Fragalysis ISPyB Target Access Authenticator
+# The Fragalysis Mock Target Access Authenticator
 
 ![GitHub Release](https://img.shields.io/github/v/release/xchem/fragalysis-mock-target-access-authenticator?include_prereleases)
 
@@ -11,11 +11,12 @@
 [![pre-commit](https://img.shields.io/badge/pre--commit-enabled-brightgreen?logo=pre-commit&logoColor=white)](https://github.com/pre-commit/pre-commit)
 [![Packaged with Poetry](https://img.shields.io/badge/packaging-poetry-cyan.svg)](https://python-poetry.org/)
 
-A **Mock** implementation of the official ISPyB authenticator. For a complete
-description of the purpose of the authenticator please refer to its repository
-at https://github.com/xchem/fragalysis-ispyb-target-access-authenticator.
+A **Mock** implementation of the official ISPyB authenticator.
 
-This is simplified **Mock** version used for developer testing.
+For a complete description of the purpose of the authenticator please refer to its
+official repository at https://github.com/xchem/fragalysis-ispyb-target-access-authenticator.
+
+**This is simplified Mock version used for developer testing.**
 
 ## Contributing
 The project uses: -
@@ -48,7 +49,7 @@ the HTTP service expected by the official authenticator.
 The image relies on a list of Target Access Strings that are present in a file
 mounted into the container at `/hom/taa/ta-map.txt`. It is a string representation
 of a Python dictionary using username as keys and a list of strings used as the
-Target Access Strings for the user. SO, py providing your own `ta-map.txt` you can
+Target Access Strings for the user. By providing your own `ta-map.txt` you can
 associate any user with any set of Target Access Strings.
 
 There's an example file (`ta-map.txt`) in the project root that is
