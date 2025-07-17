@@ -1,0 +1,44 @@
+---
+name: build
+
+# Actions that take place after every commit that's not on either the
+# staging ore production branches.
+
+# ---------------
+# Control secrets
+# ---------------
+#
+# (none)
+#
+# -----------
+# Environment (GitHub Environments)
+# -----------
+#
+# (none)
+
+on:
+  push:
+    branches:
+    - '*'
+    tags-ignore:
+    - '*'
+  schedule:
+  # Build every Sunday (0) at 4:30pm
+  - cron: '30 16 * * 0'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Inject slug/short variables
+      uses: rlespinasse/github-slug-action@v5
+    - name: Checkout
+      uses: actions/checkout@v4
+    - name: Set lower case owner name
+      run: echo "owner=${OWNER,,}" >> "$GITHUB_ENV"
+      env:
+        OWNER: '${{ github.repository_owner }}'
+    - name: Build
+      uses: docker/build-push-action@v6
+      with:
+        tags: ${{ env.owner }}/fragalysis-mock-target-access-authenticator:latest

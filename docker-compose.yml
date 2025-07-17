@@ -1,0 +1,14 @@
+---
+services:
+
+  mock-authenticator:
+    build:
+      context: .
+    image: xchem/fragalysis-mock-target-access-authenticator:${TAA_IMAGE_TAG:-latest}
+    container_name: mock-authenticator
+    environment:
+      TAA_QUERY_KEY: blob1234
+    ports:
+    - '8080:8080'
+    volumes:
+    - ${PWD}/ta-map.txt:/home/taa/ta-map.txt
