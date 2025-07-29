@@ -65,6 +65,50 @@ Build and launch the code using the `docker compose` file: -
 
     docker compose up --build --detach
 
+## Using the mock authenticator (Fragalysis)
+You can use the mock authenticator as part of your local fragalysis development
+workflow to simulate a _real_ service.
+
+You will need a text file of users and target-access strings that you want to
+test against, a string representation of a python dictionary. Something like this: -
+
+```
+{
+  'dave-lister': ['sb99999-9', 'sb99999-99'],
+  'rimmer': ['sb99999-9'],
+  'cat': ['sb99999-9']
+}
+```
+
+AYou need to add the mock service to your Fragalysis `docker-compose` file.
+Assuming your file of target access strings is called `ta-map.txt` and is present in the
+same directory as your compose file, the following should be sufficient: -
+
+```yaml
+ta-authenticator:
+  image: xchem/fragalysis-mock-target-access-authenticator:1.0.1
+  container_name: ta-authenticator
+  environment:
+    TAA_QUERY_KEY: blob1234
+  ports:
+  - '8081:8080'
+  volumes:
+  - ${PWD}/ta-map.txt:/home/taa/ta-map.txt
+```
+
+This creates a service at `ta-authenticator` on port `8081`. You then
+just need to add a couple of variables to the stack's variables.
+For the above these would be: -
+
+```yaml
+environment:
+  TA_AUTH_QUERY_KEY : blob1234
+  TA_AUTH_SERVICE: ta-authenticator
+```
+
+With this done your stack should be able to obtain results from the
+mock service.
+
 ---
 
 [black]: https://black.readthedocs.io/en/stable
@@ -72,6 +116,5 @@ Build and launch the code using the `docker compose` file: -
 [conventional commit]: https://www.conventionalcommits.org/en/v1.0.0/
 [environment variables]: https://docs.docker.com/compose/how-tos/environment-variables/set-environment-variables/
 [fastapi]: https://fastapi.tiangolo.com
-[fragalysis-backend]: https://github.com/xchem/fragalysis-backend
 [poetry]: https://python-poetry.org
 [pre-commit]: https://pre-commit.com
