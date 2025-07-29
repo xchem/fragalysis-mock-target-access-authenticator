@@ -58,7 +58,7 @@ class TargetAccessGetUserTasResponse(BaseModel):
     """/target-access/{username}/ GET response."""
 
     count: int
-    target_access: list[str]
+    target_access: set[str]
 
 
 # Endpoints (in-cluster) for the ISPyP Authenticator -----------------------------------
@@ -100,7 +100,8 @@ def get_taa_user_tas(
         )
     _LOGGER.debug("Request for '%s'", username)
 
-    user_tas: list[str] = _TA_MAP.get(username) or []
+    user_tas_list: list[str] | None = _TA_MAP.get(username)
+    user_tas: set[str] = set(user_tas_list) if user_tas_list else set()
     count: int = len(user_tas)
     record: str = "record" if count == 1 else "records"
     _LOGGER.debug("Returning %s %s for '%s'", count, record, username)
