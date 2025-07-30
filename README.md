@@ -80,7 +80,7 @@ test against, a string representation of a python dictionary. Something like thi
 }
 ```
 
-AYou need to add the mock service to your Fragalysis `docker-compose` file.
+You need to add the mock service to your Fragalysis `docker-compose` file.
 Assuming your file of target access strings is called `ta-map.txt` and is present in the
 same directory as your compose file, the following should be sufficient: -
 
