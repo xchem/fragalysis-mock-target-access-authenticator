@@ -36,6 +36,7 @@ _VERSION_NAME: str = "XChem Python FastAPI Mock TAS Authenticator"
 with open("VERSION", "r", encoding="utf-8") as version_file:
     _VERSION: str = version_file.read().strip()
 
+# Read the 'expected' target-access map
 with open("ta-map.txt", "r", encoding="utf-8") as version_file:
     _TA_MAP: str = ast.literal_eval(version_file.read().strip())
 
@@ -100,8 +101,7 @@ def get_taa_user_tas(
         )
     _LOGGER.debug("Request for '%s'", username)
 
-    user_tas_list: list[str] | None = _TA_MAP.get(username)
-    user_tas: set[str] = set(user_tas_list) if user_tas_list else set()
+    user_tas: set[str] = _TA_MAP.get(username) or set()
     count: int = len(user_tas)
     record: str = "record" if count == 1 else "records"
     _LOGGER.debug("Returning %s %s for '%s'", count, record, username)

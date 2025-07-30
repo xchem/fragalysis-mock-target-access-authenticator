@@ -49,7 +49,7 @@ the HTTP service expected by the official authenticator.
 
 The image relies on a list of Target Access Strings that are present in a file
 mounted into the container at `/hom/taa/ta-map.txt`. It is a string representation
-of a Python dictionary using username as keys and a list of strings used as the
+of a Python dictionary using username as keys and a `set` of strings used as the
 Target Access Strings for the user. By providing your own `ta-map.txt` you can
 associate any user with any set of Target Access Strings.
 
@@ -74,9 +74,9 @@ test against, a string representation of a python dictionary. Something like thi
 
 ```
 {
-  'dave-lister': ['sb99999-9', 'sb99999-99'],
-  'rimmer': ['sb99999-9'],
-  'cat': ['sb99999-9']
+  'dave-lister': {'sb99999-9', 'sb99999-99'},
+  'rimmer': {'sb99999-9'},
+  'cat': {'sb99999-9'}
 }
 ```
 
@@ -86,7 +86,7 @@ same directory as your compose file, the following should be sufficient: -
 
 ```yaml
 ta-authenticator:
-  image: xchem/fragalysis-mock-target-access-authenticator:1.0.1
+  image: xchem/fragalysis-mock-target-access-authenticator:1.1.0
   container_name: ta-authenticator
   environment:
     TAA_QUERY_KEY: blob1234
