@@ -3,6 +3,8 @@
 import ast
 import json
 import logging
+import re
+from collections import defaultdict
 from logging.config import dictConfig
 from typing import Annotated, Any
 
@@ -36,9 +38,26 @@ _VERSION_NAME: str = "XChem Python FastAPI Mock TAS Authenticator"
 with open("VERSION", "r", encoding="utf-8") as version_file:
     _VERSION: str = version_file.read().strip()
 
-# Read the 'expected' target-access map
+# Read the 'expected' target-access map.
+# It is a string representation of a Python dictionary of usernames
+# and the set of target access strings each user is a member of.
 with open("ta-map.txt", "r", encoding="utf-8") as version_file:
-    _TA_MAP: str = ast.literal_eval(version_file.read().strip())
+    _TA_MAP: dict[str, set[str]] = ast.literal_eval(version_file.read().strip())
+
+# The users for each target access string - the target-access map inverted.
+# The map is the only source of truth we have, so a user in it is a member of
+# every target access string it gives them.
+_TAS_MAP: dict[str, set[str]] = defaultdict(set)
+for _username, _user_tas in _TA_MAP.items():
+    for _tas in _user_tas:
+        _TAS_MAP[_tas].add(_username)
+_LOGGER.info(
+    "Mapped %s users onto %s target access strings", len(_TA_MAP), len(_TAS_MAP)
+)
+
+# A target access string is a proposal code, a proposal number and a visit
+# number, i.e. "lb12345-1" is code "lb", proposal "12345", visit "1".
+_TAS_PATTERN: re.Pattern = re.compile(r"^([a-zA-Z]+)(\d+)-(\d+)$")
 
 
 class TargetAccessGetVersionResponse(BaseModel):
@@ -60,6 +79,13 @@ class TargetAccessGetUserTasResponse(BaseModel):
 
     count: int
     target_access: set[str]
+
+
+class TargetAccessGetTasUsersResponse(BaseModel):
+    """/users/{tas} GET response."""
+
+    count: int
+    users: set[str]
 
 
 # Endpoints (in-cluster) for the ISPyP Authenticator -----------------------------------
@@ -108,4 +134,37 @@ def get_taa_user_tas(
     return TargetAccessGetUserTasResponse(
         count=count,
         target_access=user_tas,
+    )
+
+
+@app.get("/users/{tas}", status_code=status.HTTP_200_OK)
+def get_taa_tas_users(
+    tas: str,
+    x_taaquerykey: Annotated[str | None, Header()] = None,
+):
+    """Returns the set of users that are members of a target access string.
+    This is the target-access map (see above) inverted - a user is a member of
+    every target access string the map gives them.
+    """
+    # We can only continue if the correct query key has been provided.
+    if Config.QUERY_KEY and x_taaquerykey != Config.QUERY_KEY:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Invalid/missing X_TAAQueryKey",
+        )
+    _LOGGER.debug("Request for '%s'", tas)
+
+    if not _TAS_PATTERN.match(tas):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Not a target access string ('{tas}')",
+        )
+
+    tas_users: set[str] = _TAS_MAP.get(tas) or set()
+    count: int = len(tas_users)
+    user: str = "user" if count == 1 else "users"
+    _LOGGER.debug("Returning %s %s for '%s'", count, user, tas)
+    return TargetAccessGetTasUsersResponse(
+        count=count,
+        users=tas_users,
     )

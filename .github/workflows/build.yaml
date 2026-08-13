@@ -19,7 +19,8 @@ name: build
 on:
   push:
     branches:
-    - '*'
+    # '**' (not '*') so that branch names containing '/' are also built
+    - '**'
     tags-ignore:
     - '*'
   schedule:
