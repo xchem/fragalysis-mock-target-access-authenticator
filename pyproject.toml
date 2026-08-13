@@ -1,28 +1,30 @@
-[tool.poetry]
+[project]
 name = "fragalysis-mock-target-access-authenticator"
 version = "1.0.0"
-package-mode = false
 description = "The Fragalysis Stack Python/FastAPI Mock Target Access Authenticator"
-authors = ["Alan Christie <achristie@informaticsmatters.com>"]
+authors = [{ name = "Alan Christie", email = "achristie@informaticsmatters.com" }]
 readme = "README.md"
+requires-python = ">=3.12,<4"
+dependencies = [
+    # Locked versions (for now)
+    "fastapi==0.115.8",
+    "uvicorn[standard]>=0.34.0,<0.35.0",
+    "pydantic>=2.10.6,<3",
+]
 
-[tool.poetry.dependencies]
-# Locked versions (for now)
-fastapi = "0.115.8"
-uvicorn = {extras = ["standard"], version = "^0.34.0"}
-pydantic = "^2.10.6"
-python = "^3.12"
+[dependency-groups]
+dev = [
+    "pre-commit>=4.2.0,<5",
+    "pylint>=3.3.7,<4",
+    "httpie>=3.2.4,<4",
+    "isort>=6.0.1,<7",
+    "black>=25.1.0,<26",
+]
 
-[tool.poetry.group.dev.dependencies]
-pre-commit = "^4.2.0"
-pylint = "^3.3.7"
-httpie = "^3.2.4"
-isort = "^6.0.1"
-black = "^25.1.0"
+[tool.uv]
+# The app runs from the source tree (as 'app.app'), it is not built or
+# installed as a package - uv only manages its dependencies.
+package = false
 
 [tool.pylint.'MESSAGES CONTROL']
 disable = "too-many-boolean-expressions,too-few-public-methods,too-many-arguments,too-many-positional-arguments,missing-function-docstring,missing-module-docstring,missing-class-docstring"
-
-[build-system]
-requires = ["poetry-core"]
-build-backend = "poetry.core.masonry.api"
