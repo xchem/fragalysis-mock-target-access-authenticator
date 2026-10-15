@@ -70,14 +70,34 @@ reverse question - which users are members of a given target access string: -
 
 ```json
 {
-  "count": 1,
-  "users": [ "dave lister" ]
+  "count": 2,
+  "users": [ "dave lister", "rimmer" ],
+  "members": [
+    { "login": "dave lister", "given_name": "Dave", "family_name": "Lister" },
+    { "login": "rimmer", "given_name": "Arnold", "family_name": "Rimmer" }
+  ]
 }
 ```
 
-This needs no extra configuration. It is simply the target-access map inverted,
-so a user is a member of every target access string the map gives them. With the
-example file above, `/users/sb99999-9` returns `dave lister`.
+The users are simply the target-access map inverted, so a user is a member of
+every target access string the map gives them. With the example file above,
+`/users/sb99999-9` returns `dave lister` and `rimmer`.
+
+`members` (sorted by `login`) carries each user's given and family names. These
+come from an **optional** file mounted at `/home/taa/ta-names.txt` - a string
+representation of a Python dictionary of username and a `(given name, family name)`
+tuple: -
+
+```
+{
+  'dave lister': ('Dave', 'Lister'),
+  'rimmer': ('Arnold', 'Rimmer')
+}
+```
+
+A user without an entry (or every user, if there is no file) has `null` names.
+There's an example (`ta-names.txt`) in the project root that is mounted into the
+image by the `docker-compose.yml`.
 
 A **400** is returned if the value provided is not a target access string
 (`<code><proposalNumber>-<visitNumber>`, i.e. `lb12345-1`), and an empty set if
@@ -125,6 +145,7 @@ ta-authenticator:
   - '8081:8080'
   volumes:
   - ${PWD}/ta-map.txt:/home/taa/ta-map.txt
+  - ${PWD}/ta-names.txt:/home/taa/ta-names.txt
 ```
 
 This creates a service at `ta-authenticator` on port `8081`. You then

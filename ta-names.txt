@@ -1,0 +1,4 @@
+{
+  'dave lister': ('Dave', 'Lister'),
+  'rimmer': ('Arnold', 'Rimmer')
+}

@@ -3,6 +3,7 @@
 import ast
 import json
 import logging
+import os
 import re
 from collections import defaultdict
 from logging.config import dictConfig
@@ -55,6 +56,17 @@ _LOGGER.info(
     "Mapped %s users onto %s target access strings", len(_TA_MAP), len(_TAS_MAP)
 )
 
+# Read the (optional) names map.
+# It is a string representation of a Python dictionary of usernames
+# and a (given name, family name) tuple. Users that are not in it
+# (or every user, if there is no file) have no names.
+_NAMES_FILE: str = "ta-names.txt"
+_NAMES_MAP: dict[str, tuple[str, str]] = {}
+if os.path.isfile(_NAMES_FILE):
+    with open(_NAMES_FILE, "r", encoding="utf-8") as names_file:
+        _NAMES_MAP = ast.literal_eval(names_file.read().strip())
+_LOGGER.info("Read names for %s users", len(_NAMES_MAP))
+
 # A target access string is a proposal code, a proposal number and a visit
 # number, i.e. "lb12345-1" is code "lb", proposal "12345", visit "1".
 _TAS_PATTERN: re.Pattern = re.compile(r"^([a-zA-Z]+)(\d+)-(\d+)$")
@@ -81,11 +93,21 @@ class TargetAccessGetUserTasResponse(BaseModel):
     target_access: set[str]
 
 
+class TargetAccessTasMember(BaseModel):
+    """A member of a target access string."""
+
+    login: str
+    given_name: str | None
+    family_name: str | None
+
+
 class TargetAccessGetTasUsersResponse(BaseModel):
     """/users/{tas} GET response."""
 
     count: int
     users: set[str]
+    # The same users, with their names, sorted by login
+    members: list[TargetAccessTasMember]
 
 
 # Endpoints (in-cluster) for the ISPyP Authenticator -----------------------------------
@@ -161,10 +183,19 @@ def get_taa_tas_users(
         )
 
     tas_users: set[str] = _TAS_MAP.get(tas) or set()
+    members: list[TargetAccessTasMember] = []
+    for login in sorted(tas_users):
+        given_name, family_name = _NAMES_MAP.get(login, (None, None))
+        members.append(
+            TargetAccessTasMember(
+                login=login, given_name=given_name, family_name=family_name
+            )
+        )
     count: int = len(tas_users)
     user: str = "user" if count == 1 else "users"
     _LOGGER.debug("Returning %s %s for '%s'", count, user, tas)
     return TargetAccessGetTasUsersResponse(
         count=count,
         users=tas_users,
+        members=members,
     )
