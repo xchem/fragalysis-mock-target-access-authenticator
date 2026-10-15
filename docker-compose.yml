@@ -12,3 +12,4 @@ services:
     - '8080:8080'
     volumes:
     - ${PWD}/ta-map.txt:/home/taa/ta-map.txt
+    - ${PWD}/ta-names.txt:/home/taa/ta-names.txt
